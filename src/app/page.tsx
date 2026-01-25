@@ -34,7 +34,7 @@ export default function FitLifeGuide() {
   const [isPremium, setIsPremium] = useState(false);
 
   useEffect(() => {
-const stored = localStorage.getItem("user");
+const stored = localStorage.getItem("fitlife_profile");
 
 if (stored) {
   const user = JSON.parse(stored);
