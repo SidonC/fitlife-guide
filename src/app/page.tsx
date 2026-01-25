@@ -34,36 +34,15 @@ export default function FitLifeGuide() {
   const [isPremium, setIsPremium] = useState(false);
 
   useEffect(() => {
-    const profile = localStorage.getItem("fitlife_profile");
-    const hasPaid = localStorage.getItem("fitlife_paid");
-    const hasSeenInstall = localStorage.getItem("fitlife_seen_install");
-    const hasSeenNutrition = localStorage.getItem("fitlife_seen_nutrition");
-    const hasSeenPremiumChoice = localStorage.getItem("fitlife_seen_premium_choice");
-    
-    if (profile && hasPaid && hasSeenInstall) {
-      const userData = JSON.parse(profile);
-      setUserGoal(userData.goal || "lose");
-      setHasProfile(true);
-      setIsPremium(hasPaid === "true");
-      setAppState("main");
-    } else if (profile && hasPaid) {
-      const userData = JSON.parse(profile);
-      setUserGoal(userData.goal || "lose");
-      setIsPremium(hasPaid === "true");
-      setAppState("install");
-    } else if (profile && hasSeenPremiumChoice) {
-      const userData = JSON.parse(profile);
-      setUserGoal(userData.goal || "lose");
-      setAppState("payment");
-    } else if (profile && hasSeenNutrition) {
-      const userData = JSON.parse(profile);
-      setUserGoal(userData.goal || "lose");
-      setAppState("premiumChoice");
-    } else if (profile) {
-      const userData = JSON.parse(profile);
-      setUserGoal(userData.goal || "lose");
-      setAppState("nutrition");
-    }
+const stored = localStorage.getItem("user");
+
+if (stored) {
+  const user = JSON.parse(stored);
+  setUserGoal(user.goal || "lose");
+  setHasProfile(true);
+  setIsPremium(user.isPremium || false);
+  setAppState("main");
+}
   }, []);
 
   const handleOnboardingComplete = (userData: UserData) => {
