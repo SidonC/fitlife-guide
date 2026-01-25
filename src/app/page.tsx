@@ -103,39 +103,44 @@ if (stored) {
         ...baseTabs.slice(1),
       ]
     : baseTabs;
+if (appState === "auth") {
+  return (
+    <AuthFlow
+      onAuthSuccess={(user) => {
+        localStorage.setItem("fitlife_user_phone", user.phone);
+        setAppState("onboarding");
+      }}
+    />
+  );
+}
+
+if (appState === "onboarding") {
+  return <OnboardingFlow onComplete={handleOnboardingComplete} />;
+}
+
+if (appState === "nutrition") {
+  return <NutritionRecommendations onComplete={handleNutritionComplete} />;
+}
+
+if (appState === "premiumChoice") {
+  return (
+    <PremiumChoice
+      onChoosePremium={handleChoosePremium}
+      onSkip={handleSkipPremium}
+    />
+  );
+}
+
+if (appState === "payment") {
+  return <PaymentFlow onComplete={handlePaymentComplete} />;
+}
+
+if (appState === "install") {
+  return <InstallPrompt onComplete={handleInstallPromptComplete} />;
+}
 
   return (
   <>
-    {appState === "auth" && (
-      <AuthFlow
-        onAuthSuccess={(user) => {
-          localStorage.setItem("fitlife_user_phone", user.phone);
-          setAppState("onboarding");
-        }}
-      />
-    )}
-{appState === "onboarding" && (
-  <OnboardingFlow onComplete={handleOnboardingComplete} />
-)}
-
-{appState === "nutrition" && (
-  <NutritionRecommendations onComplete={handleNutritionComplete} />
-)}
-
-{appState === "premiumChoice" && (
-  <PremiumChoice
-    onChoosePremium={handleChoosePremium}
-    onSkip={handleSkipPremium}
-  />
-)}
-
-{appState === "payment" && (
-  <PaymentFlow onComplete={handlePaymentComplete} />
-)}
-
-{appState === "install" && (
-  <InstallPrompt onComplete={handleInstallPromptComplete} />
-)}
 
     {appState === "main" && (
       <div className="flex flex-col h-screen bg-gray-50">
