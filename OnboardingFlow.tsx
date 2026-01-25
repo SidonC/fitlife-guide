@@ -8,25 +8,28 @@ interface OnboardingFlowProps {
 }
 
 interface UserData {
+  id: string;
   name: string;
   age: string;
   birthDate: string;
   height: string;
   weight: string;
   goal: string;
+  isPremium: boolean;
 }
 
 export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const [step, setStep] = useState(0);
   const [userData, setUserData] = useState<UserData>({
-    name: "",
-    age: "",
-    birthDate: "",
-    height: "",
-    weight: "",
-    goal: "",
-  });
-
+  id: "",
+  name: "",
+  age: "",
+  birthDate: "",
+  height: "",
+  weight: "",
+  goal: "",
+  isPremium: false,
+});
   const welcomeScreens = [
     {
       icon: Dumbbell,
@@ -54,7 +57,11 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     if (step < totalSteps - 1) {
       setStep(step + 1);
     } else {
-      onComplete(userData);
+      onComplete({
+  ...userData,
+  id: crypto.randomUUID(),
+  isPremium: false,
+});
     }
   };
 
