@@ -17,6 +17,32 @@ const [error, setError] = useState("");
 
   const isValid = phone.replace(/\D/g, "").length >= 11;
 
+async function handleSendCode() {
+  setLoading(true);
+  setError("");
+
+  try {
+    const res = await fetch("/api/otp/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      setError(data.error || "Erro ao enviar código");
+      return;
+    }
+
+    setStep("code");
+  } catch {
+    setError("Erro de conexão");
+  } finally {
+    setLoading(false);
+  }
+}
+
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50">
       <div className="flex-1 flex flex-col justify-center px-6">
@@ -50,18 +76,20 @@ const [error, setError] = useState("");
       </div>
 
       <div className="p-6">
-        <button
-          disabled={!isValid}
-          onClick={() => onAuthSuccess({ phone })}
-          className={`w-full py-4 rounded-2xl font-semibold transition-all flex items-center justify-center gap-2 ${
-            isValid
-              ? "bg-emerald-500 hover:bg-emerald-600 text-white"
-              : "bg-gray-100 text-gray-400 cursor-not-allowed"
-          }`}
-        >
-          Continuar
-          <ChevronRight className="w-5 h-5" />
-        </button>
+   {error && (
+  <p className="text-red-500 text-sm mb-2 text-center">
+    {error}
+  </p>
+)}
+
+<button
+  type="button"
+  disabled={!isValid || loading}
+  onClick={handleSendCode}
+>
+  {loading ? "Enviando..." : "Continuar"}
+</button>
+        
       </div>
     </div>
   );
