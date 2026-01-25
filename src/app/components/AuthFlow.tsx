@@ -75,7 +75,8 @@ async function handleSendCode() {
         </div>
       </div>
 
-      <div className="p-6">
+      <div className="p-6 fixed bottom-0 left-0 right-0 bg-white">
+
    {error && (
   <p className="text-red-500 text-sm mb-2 text-center">
     {error}
