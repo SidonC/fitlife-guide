@@ -9,6 +9,11 @@ interface AuthFlowProps {
 
 export default function AuthFlow({ onAuthSuccess }: AuthFlowProps) {
   const [phone, setPhone] = useState("");
+  
+const [step, setStep] = useState<"phone" | "code">("phone");
+const [code, setCode] = useState("");
+const [loading, setLoading] = useState(false);
+const [error, setError] = useState("");
 
   const isValid = phone.replace(/\D/g, "").length >= 11;
 
