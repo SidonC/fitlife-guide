@@ -54,17 +54,13 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
   const totalSteps = welcomeScreens.length + 5;
 
-  const handleNext = () => {
-    if (step < totalSteps - 1) {
-      setStep(step + 1);
-    } else {
-      onComplete({
-  ...userData,
-  id: crypto.randomUUID(),
-  isPremium: false,
-});
-    }
-  };
+const handleNext = () => {
+  if (step < totalSteps - 1) {
+    setStep(step + 1);
+  } else {
+    saveUser();
+  }
+};
 
   const handleSkipWelcome = () => {
     setStep(welcomeScreens.length);
