@@ -1,5 +1,6 @@
 "use client";
 
+import { supabase } from "../lib/supabaseClient";
 import AuthFlow from "./components/AuthFlow";
 import { useState, useEffect } from "react";
 import { User, TrendingUp, Pill, ShoppingBag, Dumbbell, UserRound } from "lucide-react";
