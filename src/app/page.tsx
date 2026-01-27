@@ -105,12 +105,10 @@ if (stored) {
     : baseTabs;
 if (appState === "auth") {
   return (
-    <AuthFlow
-      onAuthSuccess={(user) => {
-        localStorage.setItem("fitlife_user_phone", user.phone);
-        setAppState("onboarding");
-      }}
-    />
+    <AuthFlow onAuthSuccess={() => {
+  setAppState("onboarding");
+}} />
+
   );
 }
 
