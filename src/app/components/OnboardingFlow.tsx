@@ -1,6 +1,6 @@
 "use client";
 
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from "../../lib/supabaseClient";
 import { useState } from "react";
 import { ChevronRight, Dumbbell, Apple, TrendingUp, User, Calendar, Target, Ruler, Check, Sparkles } from "lucide-react";
 
