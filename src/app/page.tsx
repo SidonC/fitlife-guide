@@ -46,14 +46,13 @@ export default function FitLifeGuide() {
       .eq("id", session.user.id)
       .single();
 
-    if (profile) {
-      setUserGoal(profile.goal);
-      setIsPremium(profile.isPremium);
-      setHasProfile(true);
-      setAppState("main");
-    } else {
-      setAppState("onboarding");
-    }
+ if (profile) {
+  setUserGoal(profile.goal);
+  setIsPremium(profile.isPremium);
+  setHasProfile(true);
+  setAppState("main");
+}
+
   });
 
   return () => {
