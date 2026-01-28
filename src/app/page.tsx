@@ -35,23 +35,38 @@ export default function FitLifeGuide() {
   const [userGoal, setUserGoal] = useState<string>("lose");
   const [isPremium, setIsPremium] = useState(false);
 
-  useEffect(() => {
-const stored = localStorage.getItem("fitlife_profile");
+  const handleOnboardingComplete = async (userData: UserData) => {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
 
-if (stored) {
-  const user = JSON.parse(stored);
-  setUserGoal(user.goal || "lose");
+  if (userError || !user) {
+    console.error("Usuário não autenticado", userError);
+    return;
+  }
+
+  const { error } = await supabase.from("users").insert({
+    id: user.id,
+    email: user.email,
+    name: userData.name,
+    age: userData.age,
+    birthDate: userData.birthDate,
+    height: userData.height,
+    weight: userData.weight,
+    goal: userData.goal,
+    isPremium: false,
+  });
+
+  if (error) {
+    console.error("Erro ao salvar perfil:", error);
+    return;
+  }
+
+  setUserGoal(userData.goal);
   setHasProfile(true);
-  setIsPremium(user.isPremium || false);
-  setAppState("main");
-}
-  }, []);
-
-  const handleOnboardingComplete = (userData: UserData) => {
-    localStorage.setItem("fitlife_profile", JSON.stringify(userData));
-    setUserGoal(userData.goal);
-    setAppState("nutrition");
-  };
+  setAppState("nutrition");
+};
 
   const handleNutritionComplete = () => {
     localStorage.setItem("fitlife_seen_nutrition", "true");
