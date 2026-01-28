@@ -1,5 +1,6 @@
 "use client";
 
+import { supabase } from "../lib/supabaseClient";
 import { useState } from "react";
 import { ChevronRight, Dumbbell, Apple, TrendingUp, User, Calendar, Target, Ruler, Check, Sparkles } from "lucide-react";
 
@@ -50,13 +51,45 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
   const totalSteps = welcomeScreens.length + 5;
 
-  const handleNext = () => {
-    if (step < totalSteps - 1) {
-      setStep(step + 1);
-    } else {
-      onComplete(userData);
-    }
-  };
+async function saveUser() {
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    alert("Sessão expirada. Faça login novamente.");
+    return;
+  }
+
+  const { error } = await supabase.from("users").upsert({
+    id: user.id,
+    email: user.email,
+    name: userData.name,
+    age: userData.age,
+    birthDate: userData.birthDate,
+    height: userData.height,
+    weight: userData.weight,
+    goal: userData.goal,
+    isPremium: false,
+  });
+
+  if (error) {
+    console.error(error);
+    alert("Erro ao salvar seus dados.");
+    return;
+  }
+
+  onComplete(userData);
+}
+
+const handleNext = () => {
+  if (step < totalSteps - 1) {
+    setStep(step + 1);
+  } else {
+    saveUser();
+  }
+};
 
   const handleSkipWelcome = () => {
     setStep(welcomeScreens.length);
