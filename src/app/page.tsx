@@ -30,6 +30,37 @@ interface UserData {
 
 export default function FitLifeGuide() {
   const [appState, setAppState] = useState<AppState>("auth");
+  useEffect(() => {
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    if (!session?.user) {
+      setAppState("auth");
+      return;
+    }
+
+    // Usuário logado
+    const { data: profile } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", session.user.id)
+      .single();
+
+    if (profile) {
+      setUserGoal(profile.goal);
+      setIsPremium(profile.isPremium);
+      setHasProfile(true);
+      setAppState("main");
+    } else {
+      setAppState("onboarding");
+    }
+  });
+
+  return () => {
+    subscription.unsubscribe();
+  };
+}, []);
+
   const [activeTab, setActiveTab] = useState<Tab>("progress");
   const [hasProfile, setHasProfile] = useState(false);
   const [userGoal, setUserGoal] = useState<string>("lose");
