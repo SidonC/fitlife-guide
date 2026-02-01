@@ -1,6 +1,6 @@
 "use client";
 
-import PremiumLock from "@/components/PremiumLock";
+import PremiumLock from "./PremiumLock";
 import { useState, useEffect } from "react";
 import { TrendingUp, Plus, Trash2, X, Scale, Flame, Beef, Wheat, Apple as AppleIcon, Droplet, Activity, Salad } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
