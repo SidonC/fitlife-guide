@@ -614,7 +614,7 @@ const exercisesDatabase: Record<string, Array<{
 
 type ViewMode = "groups" | "exercises" | "workoutPlan" | "goalSelection" | "activity";
 
-export default function ExercisesTab() {
+export default function ProgressTab({ isPremium }: { isPremium: boolean }) {
   const [isPremium] = useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("fitlife_paid") === "true";
