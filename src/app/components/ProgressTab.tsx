@@ -1,6 +1,6 @@
 "use client";
 
-import PremiumLock from "./PremiumLock";
+import PremiumLock from "@/components/PremiumLock";
 import { useState, useEffect } from "react";
 import { TrendingUp, Plus, Trash2, X, Scale, Flame, Beef, Wheat, Apple as AppleIcon, Droplet, Activity, Salad } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
@@ -28,6 +28,8 @@ interface NutrientGoals {
   fiber: number;
   water: number;
 }
+
+export default function ProgressTab({ isPremium }: { isPremium: boolean }) {
 
 export default function ProgressTab() {
   const [weight, setWeight] = useState("");
@@ -290,6 +292,8 @@ export default function ProgressTab() {
   const ModalIcon = currentModal.icon;
 
   return (
+  <PremiumLock isPremium={isPremium}>
+    
     <div className="space-y-6 pb-6">
       {/* Header Premium com Gradiente */}
       <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 text-white shadow-lg">
@@ -736,6 +740,7 @@ export default function ProgressTab() {
           </div>
         </div>
       )}
-    </div>
-  );
+  </div>
+  </PremiumLock>
+);
 }
