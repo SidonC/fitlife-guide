@@ -33,9 +33,8 @@ export default function AuthFlow({ onAuthSuccess }: AuthFlowProps) {
 
         // Se for cadastro, cria perfil no banco
         if (mode === "register") {
-          const { error: profileError } = await supabase
-            .from("users")
-            .insert({
+          const { error: profileError } = 
+            await supabase.from("profiles").insert({
               id: res.data.user.id,
               email: res.data.user.email,
               isPremium: false,
