@@ -31,7 +31,6 @@ interface NutrientGoals {
 
 export default function ProgressTab({ isPremium }: { isPremium: boolean }) {
 
-export default function ProgressTab() {
   const [weight, setWeight] = useState("");
   const [weightHistory, setWeightHistory] = useState<WeightEntry[]>([]);
   
