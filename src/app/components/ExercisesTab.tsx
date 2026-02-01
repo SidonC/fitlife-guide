@@ -790,6 +790,7 @@ export default function ProgressTab({ isPremium }: { isPremium: boolean }) {
             <p className="text-sm text-gray-500">
               Selecione para ver a planilha de treinos
             </p>
+      </PremiumLock>
           </div>
         </div>
         {/* Cards de Objetivos */}
@@ -1252,6 +1253,5 @@ export default function ProgressTab({ isPremium }: { isPremium: boolean }) {
         </p>
       </div>
     </div>
-        <PremiumLock isPremium={isPremium}>
   );
 }
