@@ -616,14 +616,11 @@ type ViewMode = "groups" | "exercises" | "workoutPlan" | "goalSelection" | "acti
 
 export default function ProgressTab() {
 
-const [isPremium, setIsPremium] = useState(false);
-
+  const [isPremium, setIsPremium] = useState(false);
 useEffect(() => {
   const paid = localStorage.getItem("fitlife_paid") === "true";
   setIsPremium(paid);
 }, []);
-
-  const [isPremium, setIsPremium] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("groups");
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [selectedGoal, setSelectedGoal] = useState<keyof typeof workoutPlans | null>(null);
