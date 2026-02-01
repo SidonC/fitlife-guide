@@ -1,7 +1,7 @@
 "use client";
 
 import PremiumLock from "./PremiumLock";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dumbbell, ChevronRight, Crown, ExternalLink, Heart, Zap, Target, Flame, Users, Activity, ArrowLeft, AlertCircle, CheckCircle2, Play, Calendar, X, Lock, MapPin } from "lucide-react";
 import ActivityTracker from "./ActivityTracker";
 
@@ -614,13 +614,15 @@ const exercisesDatabase: Record<string, Array<{
 
 type ViewMode = "groups" | "exercises" | "workoutPlan" | "goalSelection" | "activity";
 
-export default function ProgressTab({ isPremium }: { isPremium: boolean }) {
-  const [isPremium] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("fitlife_paid") === "true";
-    }
-    return false;
-  });
+export default function ProgressTab() {
+
+const [isPremium, setIsPremium] = useState(false);
+
+useEffect(() => {
+  const paid = localStorage.getItem("fitlife_paid") === "true";
+  setIsPremium(paid);
+}, []);
+
 
   const [viewMode, setViewMode] = useState<ViewMode>("groups");
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
