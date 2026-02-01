@@ -623,6 +623,7 @@ useEffect(() => {
   setIsPremium(paid);
 }, []);
 
+if (isPremium === null) return null; // ou um loading
 
   const [viewMode, setViewMode] = useState<ViewMode>("groups");
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
