@@ -29,12 +29,23 @@ export default function AuthFlow({ onAuthSuccess }: AuthFlowProps) {
 
       if (res.error) throw res.error;
 
-      if (res.data.user) {
-        onAuthSuccess({
-          id: res.data.user.id,
-          email: res.data.user.email!,
-        });
-      }
+     if (res.data.user) {
+
+  // Se for cadastro, cria perfil no banco
+  if (mode === "register") {
+    await supabase.from("users").insert({
+      id: res.data.user.id,
+      email: res.data.user.email,
+      isPremium: false,
+      created_at: new Date().toISOString(),
+    });
+  }
+
+  onAuthSuccess({
+    id: res.data.user.id,
+    email: res.data.user.email!,
+  });
+}
     } catch (err: any) {
       setError(err.message || "Erro ao autenticar");
     } finally {
