@@ -1,5 +1,6 @@
 "use client";
 
+import PremiumLock from "./PremiumLock";
 import { useState } from "react";
 import { Dumbbell, ChevronRight, Crown, ExternalLink, Heart, Zap, Target, Flame, Users, Activity, ArrowLeft, AlertCircle, CheckCircle2, Play, Calendar, X, Lock, MapPin } from "lucide-react";
 import ActivityTracker from "./ActivityTracker";
@@ -785,12 +786,12 @@ export default function ExercisesTab() {
             <h2 className="text-xl font-bold text-gray-900">
               Escolha seu Objetivo
             </h2>
+    <PremiumLock isPremium={isPremium}>
             <p className="text-sm text-gray-500">
               Selecione para ver a planilha de treinos
             </p>
           </div>
         </div>
-
         {/* Cards de Objetivos */}
         <div className="grid grid-cols-1 gap-4">
           <button
@@ -1251,5 +1252,6 @@ export default function ExercisesTab() {
         </p>
       </div>
     </div>
+        <PremiumLock isPremium={isPremium}>
   );
 }
