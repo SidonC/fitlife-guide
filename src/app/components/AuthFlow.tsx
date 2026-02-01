@@ -37,8 +37,7 @@ export default function AuthFlow({ onAuthSuccess }: AuthFlowProps) {
             await supabase.from("profiles").insert({
               id: res.data.user.id,
               email: res.data.user.email,
-              isPremium: false,
-              created_at: new Date().toISOString(),
+              ispremium: false,
             });
 
           if (profileError) {
