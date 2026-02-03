@@ -30,35 +30,44 @@ interface UserData {
 
 export default function FitLifeGuide() {
   const [appState, setAppState] = useState<AppState>("auth");
-  const [currentPhone, setCurrentPhone] = useState<string>("");
   const [activeTab, setActiveTab] = useState<Tab>("progress");
   const [hasProfile, setHasProfile] = useState(false);
   const [userGoal, setUserGoal] = useState<string>("lose");
   const [isPremium, setIsPremium] = useState(false);
 
   useEffect(() => {
+    // Monitora mudanças no estado de autenticação
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!session?.user) {
+        // Nenhum usuário logado, volta para tela de autenticação
         setAppState("auth");
         return;
       }
 
-      // Usuário logado - busca na tabela profiles
-      const { data: profile } = await supabase
+      // Usuário está logado, busca o perfil dele na tabela profiles
+      const { data: profile, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", session.user.id)
         .single();
 
+      if (error) {
+        console.error("Erro ao buscar perfil:", error);
+        // Se não encontrar perfil, significa que precisa completar onboarding
+        setAppState("onboarding");
+        return;
+      }
+
       if (profile) {
+        // Perfil encontrado, carrega os dados e vai para tela principal
         setUserGoal(profile.goal || "lose");
         setIsPremium(profile.ispremium || false);
         setHasProfile(true);
         setAppState("main");
       } else {
-        // Usuário existe mas não tem profile, vai pro onboarding
+        // Perfil não encontrado, vai para onboarding
         setAppState("onboarding");
       }
     });
@@ -68,59 +77,18 @@ export default function FitLifeGuide() {
     };
   }, []);
 
-  // Função para criar usuário no Supabase Auth
-  const handleAuthSuccess = async (user: { phone: string }) => {
+  // Função chamada quando o usuário completa o formulário de autenticação
+  const handleAuthSuccess = async (user: { id: string; email: string }) => {
     try {
-      setCurrentPhone(user.phone);
-
-      // Cria um email temporário baseado no telefone
-      const tempEmail = `${user.phone}@fitlifeguide.temp`;
-      const tempPassword = `FitLife${user.phone}2024!`;
-
-      // Tenta fazer signup
-      const { data, error } = await supabase.auth.signUp({
-        email: tempEmail,
-        password: tempPassword,
-        options: {
-          data: {
-            phone: user.phone,
-          },
-        },
-      });
-
-      if (error) {
-        // Se o erro for que o usuário já existe, tenta fazer login
-        if (error.message.includes("already registered")) {
-          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-            email: tempEmail,
-            password: tempPassword,
-          });
-
-          if (signInError) {
-            console.error("Erro ao fazer login:", signInError);
-            alert("Erro ao entrar. Tente novamente.");
-            return;
-          }
-
-          // Login bem sucedido
-          console.log("Login realizado com sucesso!");
-          // O onAuthStateChange vai cuidar do resto
-        } else {
-          console.error("Erro ao criar conta:", error);
-          alert("Erro ao criar conta. Tente novamente.");
-          return;
-        }
-      } else {
-        // Signup bem sucedido
-        console.log("Conta criada com sucesso!");
-        setAppState("onboarding");
-      }
+      // Por enquanto, apenas vai para onboarding
+      // A lógica real de signup/login está no AuthFlow
+      setAppState("onboarding");
     } catch (err) {
-      console.error("Erro inesperado:", err);
-      alert("Erro ao processar autenticação. Tente novamente.");
+      console.error("Erro na autenticação:", err);
     }
   };
 
+  // Função chamada quando o usuário completa o onboarding
   const handleOnboardingComplete = async (userData: UserData) => {
     const {
       data: { user },
@@ -129,21 +97,22 @@ export default function FitLifeGuide() {
 
     if (userError || !user) {
       console.error("Usuário não autenticado", userError);
+      alert("Erro: usuário não encontrado. Por favor, faça login novamente.");
+      setAppState("auth");
       return;
     }
 
-    // Insere na tabela profiles (não mais users)
+    // Insere os dados do perfil na tabela profiles
     const { error } = await supabase.from("profiles").insert({
       id: user.id,
       email: user.email,
-      phone: currentPhone, // Adiciona o telefone
       name: userData.name,
       age: userData.age,
       birthDate: userData.birthDate,
       height: userData.height,
       weight: userData.weight,
       goal: userData.goal,
-      ispremium: false, // Note: é ispremium, não isPremium (conforme o banco)
+      ispremium: false,
     });
 
     if (error) {
@@ -152,6 +121,7 @@ export default function FitLifeGuide() {
       return;
     }
 
+    // Dados salvos com sucesso, continua o fluxo
     setUserGoal(userData.goal);
     setHasProfile(true);
     setAppState("nutrition");
