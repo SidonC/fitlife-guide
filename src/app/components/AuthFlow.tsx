@@ -1,106 +1,63 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "../../lib/supabaseClient";
+import { Phone, ChevronRight, ShieldCheck } from "lucide-react";
 
 interface AuthFlowProps {
-  onAuthSuccess: (user: { id: string; email: string }) => void;
+  onAuthSuccess: (user: { phone: string }) => void;
 }
 
 export default function AuthFlow({ onAuthSuccess }: AuthFlowProps) {
-  const [mode, setMode] = useState<"login" | "register">("login");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [phone, setPhone] = useState("");
 
-  async function handleSubmit() {
-    setLoading(true);
-    setError("");
-
-    try {
-      let res;
-
-      if (mode === "login") {
-        res = await supabase.auth.signInWithPassword({ email, password });
-      } else {
-        res = await supabase.auth.signUp({ email, password });
-      }
-
-      if (res.error) throw res.error;
-
-      if (res.data.user) {
-
-        // Se for cadastro, cria perfil no banco
-        if (mode === "register") {
-          const { error: profileError } = 
-            await supabase.from("profiles").insert({
-              id: res.data.user.id,
-              email: res.data.user.email,
-              ispremium: false,
-            });
-
-          if (profileError) {
-            throw profileError;
-          }
-        }
-
-        onAuthSuccess({
-          id: res.data.user.id,
-          email: res.data.user.email!,
-        });
-      }
-
-    } catch (err: any) {
-      setError(err.message || "Erro ao autenticar");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const isValid = phone.replace(/\D/g, "").length >= 11;
 
   return (
-    <div className="flex flex-col h-screen justify-center px-6 bg-gray-50">
-      <h1 className="text-2xl font-bold mb-4">
-        {mode === "login" ? "Entrar" : "Criar conta"}
-      </h1>
+    <div className="flex flex-col h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50">
+      <div className="flex-1 flex flex-col justify-center px-6">
+        <div className="bg-emerald-50 rounded-2xl p-6 w-fit mb-6">
+          <Phone className="w-10 h-10 text-emerald-600" />
+        </div>
 
-      <input
-        type="email"
-        placeholder="Email"
-        className="mb-3 p-3 rounded border"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          Crie sua conta
+        </h1>
+        <p className="text-gray-600 mb-8">
+          Use seu número de celular para entrar com segurança
+        </p>
 
-      <input
-        type="password"
-        placeholder="Senha"
-        className="mb-3 p-3 rounded border"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
+        <label className="text-sm font-semibold text-gray-700 mb-2">
+          Telefone (com DDD)
+        </label>
 
-      {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+        <input
+          type="tel"
+          placeholder="Ex: 11999999999"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-2xl text-base text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100 transition-all mb-6"
+        />
 
-      <button
-        onClick={handleSubmit}
-        disabled={loading}
-        className="bg-emerald-600 text-white p-3 rounded"
-      >
-        {loading ? "Aguarde..." : mode === "login" ? "Entrar" : "Cadastrar"}
-      </button>
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          <ShieldCheck className="w-4 h-4 text-emerald-500" />
+          Seu número é usado apenas para identificação.
+        </div>
+      </div>
 
-      <p className="text-sm mt-4 text-center">
-        {mode === "login" ? "Não tem conta?" : "Já tem conta?"}{" "}
+      <div className="p-6">
         <button
-          className="text-emerald-600 font-semibold"
-          onClick={() =>
-            setMode(mode === "login" ? "register" : "login")
-          }
+          disabled={!isValid}
+          onClick={() => onAuthSuccess({ phone })}
+          className={`w-full py-4 rounded-2xl font-semibold transition-all flex items-center justify-center gap-2 ${
+            isValid
+              ? "bg-emerald-500 hover:bg-emerald-600 text-white"
+              : "bg-gray-100 text-gray-400 cursor-not-allowed"
+          }`}
         >
-          {mode === "login" ? "Criar" : "Entrar"}
+          Continuar
+          <ChevronRight className="w-5 h-5" />
         </button>
-      </p>
+      </div>
     </div>
   );
 }
