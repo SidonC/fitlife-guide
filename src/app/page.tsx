@@ -30,73 +30,132 @@ interface UserData {
 
 export default function FitLifeGuide() {
   const [appState, setAppState] = useState<AppState>("auth");
-  useEffect(() => {
-  const {
-    data: { subscription },
-  } = supabase.auth.onAuthStateChange(async (_event, session) => {
-    if (!session?.user) {
-      setAppState("auth");
-      return;
-    }
-
-    // Usuário logado
-    const { data: profile } = await supabase
-      .from("users")
-      .select("*")
-      .eq("id", session.user.id)
-      .single();
-
- if (profile) {
-  setUserGoal(profile.goal);
-  setIsPremium(profile.isPremium);
-  setHasProfile(true);
-  setAppState("main");
-}
-
-  });
-
-  return () => {
-    subscription.unsubscribe();
-  };
-}, []);
-
+  const [currentPhone, setCurrentPhone] = useState<string>("");
   const [activeTab, setActiveTab] = useState<Tab>("progress");
   const [hasProfile, setHasProfile] = useState(false);
   const [userGoal, setUserGoal] = useState<string>("lose");
   const [isPremium, setIsPremium] = useState(false);
 
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!session?.user) {
+        setAppState("auth");
+        return;
+      }
+
+      // Usuário logado - busca na tabela profiles
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", session.user.id)
+        .single();
+
+      if (profile) {
+        setUserGoal(profile.goal || "lose");
+        setIsPremium(profile.ispremium || false);
+        setHasProfile(true);
+        setAppState("main");
+      } else {
+        // Usuário existe mas não tem profile, vai pro onboarding
+        setAppState("onboarding");
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // Função para criar usuário no Supabase Auth
+  const handleAuthSuccess = async (user: { phone: string }) => {
+    try {
+      setCurrentPhone(user.phone);
+
+      // Cria um email temporário baseado no telefone
+      const tempEmail = `${user.phone}@fitlifeguide.temp`;
+      const tempPassword = `FitLife${user.phone}2024!`;
+
+      // Tenta fazer signup
+      const { data, error } = await supabase.auth.signUp({
+        email: tempEmail,
+        password: tempPassword,
+        options: {
+          data: {
+            phone: user.phone,
+          },
+        },
+      });
+
+      if (error) {
+        // Se o erro for que o usuário já existe, tenta fazer login
+        if (error.message.includes("already registered")) {
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+            email: tempEmail,
+            password: tempPassword,
+          });
+
+          if (signInError) {
+            console.error("Erro ao fazer login:", signInError);
+            alert("Erro ao entrar. Tente novamente.");
+            return;
+          }
+
+          // Login bem sucedido
+          console.log("Login realizado com sucesso!");
+          // O onAuthStateChange vai cuidar do resto
+        } else {
+          console.error("Erro ao criar conta:", error);
+          alert("Erro ao criar conta. Tente novamente.");
+          return;
+        }
+      } else {
+        // Signup bem sucedido
+        console.log("Conta criada com sucesso!");
+        setAppState("onboarding");
+      }
+    } catch (err) {
+      console.error("Erro inesperado:", err);
+      alert("Erro ao processar autenticação. Tente novamente.");
+    }
+  };
+
   const handleOnboardingComplete = async (userData: UserData) => {
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
-  if (userError || !user) {
-    console.error("Usuário não autenticado", userError);
-    return;
-  }
+    if (userError || !user) {
+      console.error("Usuário não autenticado", userError);
+      return;
+    }
 
-  const { error } = await supabase.from("users").insert({
-    id: user.id,
-    email: user.email,
-    name: userData.name,
-    age: userData.age,
-    birthDate: userData.birthDate,
-    height: userData.height,
-    weight: userData.weight,
-    goal: userData.goal,
-    isPremium: false,
-  });
+    // Insere na tabela profiles (não mais users)
+    const { error } = await supabase.from("profiles").insert({
+      id: user.id,
+      email: user.email,
+      phone: currentPhone, // Adiciona o telefone
+      name: userData.name,
+      age: userData.age,
+      birthDate: userData.birthDate,
+      height: userData.height,
+      weight: userData.weight,
+      goal: userData.goal,
+      ispremium: false, // Note: é ispremium, não isPremium (conforme o banco)
+    });
 
-  if (error) {
-    console.error("Erro ao salvar perfil:", error);
-    return;
-  }
+    if (error) {
+      console.error("Erro ao salvar perfil:", error);
+      alert("Erro ao salvar perfil. Tente novamente.");
+      return;
+    }
 
-  setUserGoal(userData.goal);
-  setHasProfile(true);
-  setAppState("nutrition");
-};
+    setUserGoal(userData.goal);
+    setHasProfile(true);
+    setAppState("nutrition");
+  };
 
   const handleNutritionComplete = () => {
     localStorage.setItem("fitlife_seen_nutrition", "true");
@@ -149,110 +208,104 @@ export default function FitLifeGuide() {
         ...baseTabs.slice(1),
       ]
     : baseTabs;
-if (appState === "auth") {
-  return (
-    <AuthFlow onAuthSuccess={() => {
-  setAppState("onboarding");
-}} />
 
-  );
-}
+  if (appState === "auth") {
+    return <AuthFlow onAuthSuccess={handleAuthSuccess} />;
+  }
 
-if (appState === "onboarding") {
-  return <OnboardingFlow onComplete={handleOnboardingComplete} />;
-}
+  if (appState === "onboarding") {
+    return <OnboardingFlow onComplete={handleOnboardingComplete} />;
+  }
 
-if (appState === "nutrition") {
-  return <NutritionRecommendations onComplete={handleNutritionComplete} />;
-}
+  if (appState === "nutrition") {
+    return <NutritionRecommendations onComplete={handleNutritionComplete} />;
+  }
 
-if (appState === "premiumChoice") {
-  return (
-    <PremiumChoice
-      onChoosePremium={handleChoosePremium}
-      onSkip={handleSkipPremium}
-    />
-  );
-}
+  if (appState === "premiumChoice") {
+    return (
+      <PremiumChoice
+        onChoosePremium={handleChoosePremium}
+        onSkip={handleSkipPremium}
+      />
+    );
+  }
 
-if (appState === "payment") {
-  return <PaymentFlow onComplete={handlePaymentComplete} />;
-}
+  if (appState === "payment") {
+    return <PaymentFlow onComplete={handlePaymentComplete} />;
+  }
 
-if (appState === "install") {
-  return <InstallPrompt onComplete={handleInstallPromptComplete} />;
-}
+  if (appState === "install") {
+    return <InstallPrompt onComplete={handleInstallPromptComplete} />;
+  }
 
   return (
-  <>
-
-    {appState === "main" && (
-      <div className="flex flex-col h-screen bg-gray-50">
-        {/* Header */}
-        <header className="bg-gradient-to-br from-emerald-600 to-teal-700 border-b border-emerald-700/50 shadow-lg">
-          <div className="flex items-center justify-center py-4 px-4">
-            <div className="relative">
-              <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.25)]">
-                <img
-                  src="https://k6hrqrxuu8obbfwn.public.blob.vercel-storage.com/temp/045ea64b-bf92-4f6a-9fe1-259814e3fb97.png"
-                  alt="FitLife Guide"
-                  className="w-14 h-14 rounded-full object-cover"
-                />
+    <>
+      {appState === "main" && (
+        <div className="flex flex-col h-screen bg-gray-50">
+          {/* Header */}
+          <header className="bg-gradient-to-br from-emerald-600 to-teal-700 border-b border-emerald-700/50 shadow-lg">
+            <div className="flex items-center justify-center py-4 px-4">
+              <div className="relative">
+                <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.25)]">
+                  <img
+                    src="https://k6hrqrxuu8obbfwn.public.blob.vercel-storage.com/temp/045ea64b-bf92-4f6a-9fe1-259814e3fb97.png"
+                    alt="FitLife Guide"
+                    className="w-14 h-14 rounded-full object-cover"
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        </header>
+          </header>
 
-        {/* Content */}
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-4 pb-24">
-          {activeTab === "profile" && (
-            <ProfileTab
-              onProfileSaved={() => setHasProfile(true)}
-              onGoalChanged={handleGoalChanged}
-            />
-          )}
-          {activeTab === "progress" && <ProgressTab />}
-          {activeTab === "supplements" && <SupplementsTab />}
-          {activeTab === "offers" && <OffersTab />}
-          {activeTab === "nutritionist" && <NutritionistTab />}
-          {activeTab === "exercises" && isPremium && <ExercisesTab />}
-        </main>
+          {/* Content */}
+          <main className="flex-1 overflow-y-auto bg-gray-50 p-4 pb-24">
+            {activeTab === "profile" && (
+              <ProfileTab
+                onProfileSaved={() => setHasProfile(true)}
+                onGoalChanged={handleGoalChanged}
+              />
+            )}
+            {activeTab === "progress" && <ProgressTab />}
+            {activeTab === "supplements" && <SupplementsTab />}
+            {activeTab === "offers" && <OffersTab />}
+            {activeTab === "nutritionist" && <NutritionistTab />}
+            {activeTab === "exercises" && isPremium && <ExercisesTab />}
+          </main>
 
-        {/* Bottom Nav */}
-        <nav className="fixed bottom-0 left-0 right-0 bg-gradient-to-br from-emerald-600 to-teal-700 shadow-[0_-4px_20px_rgba(0,0,0,0.15)]">
-          <div className="flex justify-around items-center h-16 px-2">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex flex-col items-center justify-center gap-1 transition-all duration-300 ${
-                    isActive
-                      ? "text-yellow-300 scale-110"
-                      : "text-white/80 hover:text-white hover:scale-105"
-                  }`}
-                >
-                  <Icon
-                    className={`w-6 h-6 ${
+          {/* Bottom Nav */}
+          <nav className="fixed bottom-0 left-0 right-0 bg-gradient-to-br from-emerald-600 to-teal-700 shadow-[0_-4px_20px_rgba(0,0,0,0.15)]">
+            <div className="flex justify-around items-center h-16 px-2">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex flex-col items-center justify-center gap-1 transition-all duration-300 ${
                       isActive
-                        ? "drop-shadow-[0_2px_8px_rgba(253,224,71,0.5)]"
-                        : ""
+                        ? "text-yellow-300 scale-110"
+                        : "text-white/80 hover:text-white hover:scale-105"
                     }`}
-                    strokeWidth={isActive ? 2.5 : 2}
-                  />
-                  <span className="text-[10px] font-semibold">
-                    {tab.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </nav>
-      </div>
-    )}
-  </>
-);
-  
+                  >
+                    <Icon
+                      className={`w-6 h-6 ${
+                        isActive
+                          ? "drop-shadow-[0_2px_8px_rgba(253,224,71,0.5)]"
+                          : ""
+                      }`}
+                      strokeWidth={isActive ? 2.5 : 2}
+                    />
+                    <span className="text-[10px] font-semibold">
+                      {tab.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </nav>
+        </div>
+      )}
+    </>
+  );
 }
