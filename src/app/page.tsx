@@ -103,21 +103,22 @@ export default function FitLifeGuide() {
     }
 
     // Insere os dados do perfil na tabela profiles
+    // IMPORTANTE: Usando nomes de campos exatamente como estão no banco
     const { error } = await supabase.from("profiles").insert({
       id: user.id,
       email: user.email,
       name: userData.name,
       age: userData.age,
-      birthDate: userData.birthDate,
+      birthdate: userData.birthDate, // Campo no banco é "birthdate" (tudo minúsculo)
       height: userData.height,
       weight: userData.weight,
       goal: userData.goal,
-      ispremium: false,
+      ispremium: false, // Campo no banco é "ispremium" (tudo minúsculo)
     });
 
     if (error) {
       console.error("Erro ao salvar perfil:", error);
-      alert("Erro ao salvar perfil. Tente novamente.");
+      alert(`Erro ao salvar perfil: ${error.message}`);
       return;
     }
 
@@ -218,7 +219,7 @@ export default function FitLifeGuide() {
               <div className="relative">
                 <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-[0_4px_20px_rgba(0,0,0,0.25)]">
                   <img
-                    src="https://k6hrqrxuu8obbfwn.public.blob.vercel-storage.com/temp/045ea64b-bf92-4f6a-9fe1-259814e3fb97.png"
+                    src="/logo_round_small.png"
                     alt="FitLife Guide"
                     className="w-14 h-14 rounded-full object-cover"
                   />
