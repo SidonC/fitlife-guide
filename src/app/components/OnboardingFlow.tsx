@@ -71,7 +71,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
   const isFormValid = () => {
     if (step === 3) return userData.name.trim() !== "";
-    if (step === 4) return userData.age.trim() !== "" && userData.birthDate.trim() !== "";
+    if (step === 4) return userData.birthDate.trim() !== ""; // Só precisa da data de nascimento
     if (step === 5) return userData.height.trim() !== "" && userData.weight.trim() !== "";
     if (step === 6) return userData.goal.trim() !== "";
     return true;
@@ -261,8 +261,28 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     );
   }
 
-  // Form Step 2: Idade e Data de Nascimento (step 4)
+  // Form Step 2: Data de Nascimento (step 4)
   if (step === 4) {
+    // Função para calcular idade baseado na data de nascimento
+    const calculateAge = (birthDate: string) => {
+      if (!birthDate) return "";
+      const today = new Date();
+      const birth = new Date(birthDate);
+      let age = today.getFullYear() - birth.getFullYear();
+      const monthDiff = today.getMonth() - birth.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+        age--;
+      }
+      return age.toString();
+    };
+
+    const handleBirthDateChange = (date: string) => {
+      updateUserData("birthDate", date);
+      // Calcula e atualiza a idade automaticamente
+      const calculatedAge = calculateAge(date);
+      updateUserData("age", calculatedAge);
+    };
+
     return (
       <div className="flex flex-col h-screen bg-gradient-to-br from-teal-50 via-white to-emerald-50">
         <div className="flex justify-center gap-2 p-6">
@@ -286,39 +306,31 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           </div>
 
           <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent mb-2 leading-tight">
-            Quantos anos você tem?
+            Quando você nasceu?
           </h1>
           <p className="text-base text-gray-600 mb-8">
-            Isso nos ajuda a personalizar suas metas
+            Vamos calcular sua idade automaticamente
           </p>
 
-          <div className="space-y-5">
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">
-                Idade
-              </label>
-              <input
-                type="number"
-                value={userData.age}
-                onChange={(e) => updateUserData("age", e.target.value)}
-                placeholder="Ex: 25"
-                className="w-full px-5 py-4 bg-white border-2 border-gray-200 rounded-2xl text-base text-gray-900 placeholder-gray-400 focus:border-cyan-500 focus:outline-none focus:ring-4 focus:ring-cyan-100 transition-all shadow-sm"
-                min="1"
-                max="120"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">
-                Data de Nascimento
-              </label>
-              <input
-                type="date"
-                value={userData.birthDate}
-                onChange={(e) => updateUserData("birthDate", e.target.value)}
-                className="w-full px-5 py-4 bg-white border-2 border-gray-200 rounded-2xl text-base text-gray-900 placeholder-gray-400 focus:border-cyan-500 focus:outline-none focus:ring-4 focus:ring-cyan-100 transition-all shadow-sm"
-              />
-            </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">
+              Data de Nascimento
+            </label>
+            <input
+              type="date"
+              value={userData.birthDate}
+              onChange={(e) => handleBirthDateChange(e.target.value)}
+              className="w-full px-5 py-4 bg-white border-2 border-gray-200 rounded-2xl text-base text-gray-900 placeholder-gray-400 focus:border-cyan-500 focus:outline-none focus:ring-4 focus:ring-cyan-100 transition-all shadow-sm"
+              max={new Date().toISOString().split('T')[0]} // Não permite datas futuras
+            />
+            
+            {userData.age && (
+              <div className="mt-4 p-4 bg-cyan-50 border-2 border-cyan-200 rounded-2xl">
+                <p className="text-sm text-cyan-700 font-medium">
+                  Você tem <span className="text-2xl font-bold text-cyan-600">{userData.age}</span> anos
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
