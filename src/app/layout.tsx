@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FitTrack MVP - Seu Companheiro Fitness",
+  title: "FitLife Guide - Seu Companheiro Fitness",
   description: "Acompanhe alimentação, treino e suplementação de forma prática",
 };
 
