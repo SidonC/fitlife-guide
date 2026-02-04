@@ -277,10 +277,15 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     };
 
     const handleBirthDateChange = (date: string) => {
+      // Atualiza a data de nascimento
       updateUserData("birthDate", date);
       // Calcula e atualiza a idade automaticamente
-      const calculatedAge = calculateAge(date);
-      updateUserData("age", calculatedAge);
+      if (date) {
+        const calculatedAge = calculateAge(date);
+        updateUserData("age", calculatedAge);
+      } else {
+        updateUserData("age", "");
+      }
     };
 
     return (
@@ -322,12 +327,13 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               onChange={(e) => handleBirthDateChange(e.target.value)}
               className="w-full px-5 py-4 bg-white border-2 border-gray-200 rounded-2xl text-base text-gray-900 placeholder-gray-400 focus:border-cyan-500 focus:outline-none focus:ring-4 focus:ring-cyan-100 transition-all shadow-sm"
               max={new Date().toISOString().split('T')[0]} // Não permite datas futuras
+              placeholder="DD/MM/AAAA"
             />
             
-            {userData.age && (
-              <div className="mt-4 p-4 bg-cyan-50 border-2 border-cyan-200 rounded-2xl">
-                <p className="text-sm text-cyan-700 font-medium">
-                  Você tem <span className="text-2xl font-bold text-cyan-600">{userData.age}</span> anos
+            {userData.age && userData.birthDate && (
+              <div className="mt-4 p-4 bg-gradient-to-r from-cyan-50 to-blue-50 border-2 border-cyan-200 rounded-2xl animate-[fadeIn_0.3s_ease-out]">
+                <p className="text-sm text-cyan-700 font-medium text-center">
+                  Você tem <span className="text-3xl font-bold text-cyan-600 mx-1">{userData.age}</span> anos
                 </p>
               </div>
             )}
@@ -348,6 +354,20 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             <ChevronRight className="w-6 h-6" strokeWidth={2.5} />
           </button>
         </div>
+
+        {/* Animação CSS */}
+        <style jsx>{`
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+              transform: translateY(-10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+        `}</style>
       </div>
     );
   }
