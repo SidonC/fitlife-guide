@@ -17,10 +17,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "FitLife Guide - Seu Companheiro Fitness",
-  description: "Acompanhe alimentação, treino e suplementação de forma prática",
-};
+export const metadata = {
+  title: "FitLife Guide",
+  description: "Seu companheiro fitness completo",
+  icons: {
+    icon: '/logo_round_small.png',
+  }
+}
 
 export default function RootLayout({
   children,
