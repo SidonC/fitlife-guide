@@ -109,7 +109,6 @@ export default function FitLifeGuide() {
       email: user.email,
       name: userData.name,
       age: userData.age,
-      birthdate: userData.birthDate, // Campo no banco é "birthdate" (tudo minúsculo)
       height: userData.height,
       weight: userData.weight,
       goal: userData.goal,
