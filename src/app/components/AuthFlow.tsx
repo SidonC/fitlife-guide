@@ -23,7 +23,7 @@ export default function AuthFlow({ onAuthSuccess }: AuthFlowProps) {
 
   // Validações básicas
   const isEmailValid = email.includes("@") && email.includes(".");
-  const isPasswordValid = password.length >= 6;
+  const isPasswordValid = password.length >= 6 && password.length <= 10;
   const isFormValid = isEmailValid && isPasswordValid;
 
   // Função para fazer login ou cadastro
@@ -159,17 +159,22 @@ export default function AuthFlow({ onAuthSuccess }: AuthFlowProps) {
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
-                placeholder="Mínimo 6 caracteres"
+                placeholder="6 a 10 caracteres"
                 value={password}
                 onChange={(e) => {
-                  setPassword(e.target.value);
-                  setError("");
+                  const value = e.target.value;
+                  // Limita a 10 caracteres
+                  if (value.length <= 10) {
+                    setPassword(value);
+                    setError("");
+                  }
                 }}
                 onKeyPress={(e) => {
                   if (e.key === "Enter" && isFormValid && !loading) {
                     handleSubmit();
                   }
                 }}
+                maxLength={10}
                 className="w-full px-5 py-4 pl-12 pr-12 bg-white/80 backdrop-blur-sm border-2 border-gray-200 rounded-2xl text-base text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-4 focus:ring-emerald-100 transition-all shadow-sm"
               />
               <Lock className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
@@ -181,6 +186,21 @@ export default function AuthFlow({ onAuthSuccess }: AuthFlowProps) {
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
+            
+            {/* Indicador de caracteres */}
+            {password && (
+              <div className="mt-2 ml-1">
+                <span className={`text-xs font-medium ${
+                  password.length >= 6 && password.length <= 10
+                    ? "text-emerald-600"
+                    : "text-gray-500"
+                }`}>
+                  {password.length}/10 caracteres
+                  {password.length < 6 && " (mínimo 6)"}
+                  {password.length >= 6 && password.length <= 10 && " ✓"}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Mensagem de erro */}
