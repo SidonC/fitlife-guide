@@ -299,37 +299,13 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             <input
               type="number"
               value={userData.age}
-              onChange={(e) => {
-                const value = e.target.value;
-                // Limita a 3 dígitos (máximo 150 anos)
-                if (value.length <= 3) {
-                  updateUserData("age", value);
-                  // Limpa o birthDate já que não usamos mais
-                  updateUserData("birthDate", "");
-                }
-              }}
+              onChange={(e) => updateUserData("age", e.target.value)}
               placeholder="Ex: 25"
               className="w-full px-5 py-4 bg-white border-2 border-gray-200 rounded-2xl text-base text-gray-900 placeholder-gray-400 focus:border-cyan-500 focus:outline-none focus:ring-4 focus:ring-cyan-100 transition-all shadow-sm"
               min="1"
               max="150"
               autoFocus
             />
-            
-            {userData.age && parseInt(userData.age) > 0 && parseInt(userData.age) < 150 && (
-              <div className="mt-4 p-4 bg-gradient-to-r from-cyan-50 to-blue-50 border-2 border-cyan-200 rounded-2xl">
-                <p className="text-sm text-cyan-700 font-medium text-center">
-                  ✓ Idade confirmada: <span className="text-2xl font-bold text-cyan-600 mx-1">{userData.age}</span> anos
-                </p>
-              </div>
-            )}
-
-            {userData.age && (parseInt(userData.age) <= 0 || parseInt(userData.age) >= 150) && (
-              <div className="mt-4 p-4 bg-red-50 border-2 border-red-200 rounded-2xl">
-                <p className="text-sm text-red-600 font-medium text-center">
-                  Por favor, digite uma idade válida (1-150)
-                </p>
-              </div>
-            )}
           </div>
         </div>
 
