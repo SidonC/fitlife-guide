@@ -90,21 +90,30 @@ export default function FitLifeGuide() {
 
   // Função chamada quando o usuário completa o onboarding
   const handleOnboardingComplete = async (userData: UserData) => {
+    console.log("=== INÍCIO DO SALVAMENTO ===");
+    console.log("Dados recebidos:", userData);
+
     const {
       data: { user },
       error: userError,
     } = await supabase.auth.getUser();
 
+    console.log("User retornado:", user);
+    console.log("Error ao buscar user:", userError);
+
     if (userError || !user) {
-      console.error("Usuário não autenticado", userError);
-      alert("Erro: usuário não encontrado. Por favor, faça login novamente.");
+      console.error("❌ Usuário não autenticado", userError);
+      alert(`Erro: usuário não encontrado. Detalhes: ${userError?.message || "Sem detalhes"}. Por favor, faça login novamente.`);
       setAppState("auth");
       return;
     }
 
+    console.log("✅ Usuário autenticado! ID:", user.id, "Email:", user.email);
+
     // Insere os dados do perfil na tabela profiles
     // IMPORTANTE: Usando nomes de campos exatamente como estão no banco
-    const { error } = await supabase.from("profiles").insert({
+    console.log("Tentando inserir perfil no banco...");
+    const { error, data } = await supabase.from("profiles").insert({
       id: user.id,
       email: user.email,
       name: userData.name,
@@ -115,11 +124,16 @@ export default function FitLifeGuide() {
       ispremium: false, // Campo no banco é "ispremium" (tudo minúsculo)
     });
 
+    console.log("Resultado do insert - Data:", data);
+    console.log("Resultado do insert - Error:", error);
+
     if (error) {
-      console.error("Erro ao salvar perfil:", error);
+      console.error("❌ Erro ao salvar perfil:", error);
       alert(`Erro ao salvar perfil: ${error.message}`);
       return;
     }
+
+    console.log("✅ Perfil salvo com sucesso!");
 
     // Dados salvos com sucesso, continua o fluxo
     setUserGoal(userData.goal);
