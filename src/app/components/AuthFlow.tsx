@@ -34,6 +34,7 @@ export default function AuthFlow({ onAuthSuccess }: AuthFlowProps) {
     try {
       if (mode === "register") {
         // Modo cadastro - tenta criar nova conta
+        console.log("📝 Criando conta...");
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -41,12 +42,28 @@ export default function AuthFlow({ onAuthSuccess }: AuthFlowProps) {
 
         if (error) throw error;
 
+        console.log("✅ Conta criada!", data);
+
+        // CRÍTICO: Aguarda a sessão ser estabelecida
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Verifica se o usuário está autenticado
+        const { data: sessionData } = await supabase.auth.getSession();
+        console.log("🔍 Sessão após cadastro:", sessionData);
+
+        if (!sessionData.session) {
+          console.error("❌ Sessão não estabelecida!");
+          throw new Error("Falha ao estabelecer sessão. Tente fazer login.");
+        }
+
         if (data.user) {
           // Cadastro bem sucedido
+          console.log("✅ Usuário autenticado! Prosseguindo para onboarding...");
           onAuthSuccess({ id: data.user.id, email: data.user.email! });
         }
       } else {
         // Modo login - tenta fazer login
+        console.log("🔐 Fazendo login...");
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -54,12 +71,15 @@ export default function AuthFlow({ onAuthSuccess }: AuthFlowProps) {
 
         if (error) throw error;
 
+        console.log("✅ Login bem-sucedido!", data);
+
         if (data.user) {
           // Login bem sucedido
           // O onAuthStateChange no page.tsx vai cuidar da navegação
         }
       }
     } catch (err: any) {
+      console.error("❌ Erro na autenticação:", err);
       // Tratamento de erros com mensagens amigáveis
       let errorMessage = "Ocorreu um erro. Tente novamente.";
       
