@@ -266,22 +266,31 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     // Função para calcular idade baseado na data de nascimento
     const calculateAge = (birthDate: string) => {
       if (!birthDate) return "";
-      const today = new Date();
-      const birth = new Date(birthDate);
-      let age = today.getFullYear() - birth.getFullYear();
-      const monthDiff = today.getMonth() - birth.getMonth();
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-        age--;
+      try {
+        const today = new Date();
+        const birth = new Date(birthDate);
+        let age = today.getFullYear() - birth.getFullYear();
+        const monthDiff = today.getMonth() - birth.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+          age--;
+        }
+        return age.toString();
+      } catch (error) {
+        return "";
       }
-      return age.toString();
     };
 
-    const handleBirthDateChange = (date: string) => {
+    const handleBirthDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const date = e.target.value;
+      console.log("Data selecionada:", date); // Debug
+      
       // Atualiza a data de nascimento
       updateUserData("birthDate", date);
+      
       // Calcula e atualiza a idade automaticamente
-      if (date) {
+      if (date && date.length === 10) { // Formato YYYY-MM-DD tem 10 caracteres
         const calculatedAge = calculateAge(date);
+        console.log("Idade calculada:", calculatedAge); // Debug
         updateUserData("age", calculatedAge);
       } else {
         updateUserData("age", "");
@@ -322,15 +331,23 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               Data de Nascimento
             </label>
             <input
+              key="birthdate-input"
               type="date"
               value={userData.birthDate}
-              onChange={(e) => handleBirthDateChange(e.target.value)}
-              className="w-full px-5 py-4 bg-white border-2 border-gray-200 rounded-2xl text-base text-gray-900 placeholder-gray-400 focus:border-cyan-500 focus:outline-none focus:ring-4 focus:ring-cyan-100 transition-all shadow-sm"
-              max={new Date().toISOString().split('T')[0]} // Não permite datas futuras
-              placeholder="DD/MM/AAAA"
+              onChange={handleBirthDateChange}
+              className="w-full px-5 py-4 bg-white border-2 border-gray-200 rounded-2xl text-base text-gray-900 focus:border-cyan-500 focus:outline-none focus:ring-4 focus:ring-cyan-100 transition-all shadow-sm"
+              max={new Date().toISOString().split('T')[0]}
+              required
             />
             
-            {userData.age && userData.birthDate && (
+            {/* Debug: Mostrar valor atual */}
+            {userData.birthDate && (
+              <p className="text-xs text-gray-500 mt-2">
+                Data selecionada: {userData.birthDate}
+              </p>
+            )}
+            
+            {userData.age && userData.birthDate && parseInt(userData.age) > 0 && (
               <div className="mt-4 p-4 bg-gradient-to-r from-cyan-50 to-blue-50 border-2 border-cyan-200 rounded-2xl animate-[fadeIn_0.3s_ease-out]">
                 <p className="text-sm text-cyan-700 font-medium text-center">
                   Você tem <span className="text-3xl font-bold text-cyan-600 mx-1">{userData.age}</span> anos
