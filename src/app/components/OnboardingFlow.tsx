@@ -71,7 +71,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
   const isFormValid = () => {
     if (step === 3) return userData.name.trim() !== "";
-    if (step === 4) return userData.birthDate.trim() !== ""; // Só precisa da data de nascimento
+    if (step === 4) return userData.age.trim() !== "" && parseInt(userData.age) > 0 && parseInt(userData.age) < 150;
     if (step === 5) return userData.height.trim() !== "" && userData.weight.trim() !== "";
     if (step === 6) return userData.goal.trim() !== "";
     return true;
@@ -261,42 +261,8 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     );
   }
 
-  // Form Step 2: Data de Nascimento (step 4)
+  // Form Step 2: Idade (step 4)
   if (step === 4) {
-    // Função para calcular idade baseado na data de nascimento
-    const calculateAge = (birthDate: string) => {
-      if (!birthDate) return "";
-      try {
-        const today = new Date();
-        const birth = new Date(birthDate);
-        let age = today.getFullYear() - birth.getFullYear();
-        const monthDiff = today.getMonth() - birth.getMonth();
-        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-          age--;
-        }
-        return age.toString();
-      } catch (error) {
-        return "";
-      }
-    };
-
-    const handleBirthDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const date = e.target.value;
-      console.log("Data selecionada:", date); // Debug
-      
-      // Atualiza a data de nascimento
-      updateUserData("birthDate", date);
-      
-      // Calcula e atualiza a idade automaticamente
-      if (date && date.length === 10) { // Formato YYYY-MM-DD tem 10 caracteres
-        const calculatedAge = calculateAge(date);
-        console.log("Idade calculada:", calculatedAge); // Debug
-        updateUserData("age", calculatedAge);
-      } else {
-        updateUserData("age", "");
-      }
-    };
-
     return (
       <div className="flex flex-col h-screen bg-gradient-to-br from-teal-50 via-white to-emerald-50">
         <div className="flex justify-center gap-2 p-6">
@@ -320,37 +286,47 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           </div>
 
           <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent mb-2 leading-tight">
-            Quando você nasceu?
+            Quantos anos você tem?
           </h1>
           <p className="text-base text-gray-600 mb-8">
-            Vamos calcular sua idade automaticamente
+            Isso nos ajuda a personalizar suas metas
           </p>
 
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">
-              Data de Nascimento
+              Idade
             </label>
             <input
-              key="birthdate-input"
-              type="date"
-              value={userData.birthDate}
-              onChange={handleBirthDateChange}
-              className="w-full px-5 py-4 bg-white border-2 border-gray-200 rounded-2xl text-base text-gray-900 focus:border-cyan-500 focus:outline-none focus:ring-4 focus:ring-cyan-100 transition-all shadow-sm"
-              max={new Date().toISOString().split('T')[0]}
-              required
+              type="number"
+              value={userData.age}
+              onChange={(e) => {
+                const value = e.target.value;
+                // Limita a 3 dígitos (máximo 150 anos)
+                if (value.length <= 3) {
+                  updateUserData("age", value);
+                  // Limpa o birthDate já que não usamos mais
+                  updateUserData("birthDate", "");
+                }
+              }}
+              placeholder="Ex: 25"
+              className="w-full px-5 py-4 bg-white border-2 border-gray-200 rounded-2xl text-base text-gray-900 placeholder-gray-400 focus:border-cyan-500 focus:outline-none focus:ring-4 focus:ring-cyan-100 transition-all shadow-sm"
+              min="1"
+              max="150"
+              autoFocus
             />
             
-            {/* Debug: Mostrar valor atual */}
-            {userData.birthDate && (
-              <p className="text-xs text-gray-500 mt-2">
-                Data selecionada: {userData.birthDate}
-              </p>
-            )}
-            
-            {userData.age && userData.birthDate && parseInt(userData.age) > 0 && (
-              <div className="mt-4 p-4 bg-gradient-to-r from-cyan-50 to-blue-50 border-2 border-cyan-200 rounded-2xl animate-[fadeIn_0.3s_ease-out]">
+            {userData.age && parseInt(userData.age) > 0 && parseInt(userData.age) < 150 && (
+              <div className="mt-4 p-4 bg-gradient-to-r from-cyan-50 to-blue-50 border-2 border-cyan-200 rounded-2xl">
                 <p className="text-sm text-cyan-700 font-medium text-center">
-                  Você tem <span className="text-3xl font-bold text-cyan-600 mx-1">{userData.age}</span> anos
+                  ✓ Idade confirmada: <span className="text-2xl font-bold text-cyan-600 mx-1">{userData.age}</span> anos
+                </p>
+              </div>
+            )}
+
+            {userData.age && (parseInt(userData.age) <= 0 || parseInt(userData.age) >= 150) && (
+              <div className="mt-4 p-4 bg-red-50 border-2 border-red-200 rounded-2xl">
+                <p className="text-sm text-red-600 font-medium text-center">
+                  Por favor, digite uma idade válida (1-150)
                 </p>
               </div>
             )}
@@ -371,20 +347,6 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             <ChevronRight className="w-6 h-6" strokeWidth={2.5} />
           </button>
         </div>
-
-        {/* Animação CSS */}
-        <style jsx>{`
-          @keyframes fadeIn {
-            from {
-              opacity: 0;
-              transform: translateY(-10px);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
-          }
-        `}</style>
       </div>
     );
   }
@@ -615,13 +577,6 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           <div className="flex justify-between items-center py-3 px-2">
             <span className="text-gray-600 text-sm font-medium">Idade</span>
             <span className="font-bold text-gray-900">{userData.age} anos</span>
-          </div>
-          <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
-          <div className="flex justify-between items-center py-3 px-2">
-            <span className="text-gray-600 text-sm font-medium">Data de Nascimento</span>
-            <span className="font-bold text-gray-900">
-              {new Date(userData.birthDate).toLocaleDateString("pt-BR")}
-            </span>
           </div>
           <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
           <div className="flex justify-between items-center py-3 px-2">
